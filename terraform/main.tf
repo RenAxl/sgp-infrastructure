@@ -5,8 +5,8 @@ provider "aws" {
 module "aws_sgp_infrastructure" {
   source            = "./modules/aws_sgp_infrastructure"
   microservice_name = var.microservice_name
-  create_dynamodb = var.create_dynamodb
-  create_s3 = var.create_s3
+  create_dynamodb   = var.create_dynamodb
+  create_s3         = var.create_s3
 }
 
 /*
