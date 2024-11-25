@@ -1,9 +1,7 @@
 # Ignorar a pasta .terraform
 .terraform/
 *.tfstate
-*.
-
-tfstate.backup
+*.tfstate.backup
 *.tfvars
 *.tfplan
 *.tfr
