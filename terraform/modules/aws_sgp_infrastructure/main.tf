@@ -3,16 +3,23 @@ resource "aws_security_group" "microservice_ec2_sg" {
   description = "Allow traffic on ports 22 and 80"
 
   ingress {
-    from_port   = 22
-    to_port     = 22
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 5000
+    to_port     = 5000
     protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -26,6 +33,7 @@ resource "aws_instance" "microservice_ec2" {
   instance_type          = "t2.micro"
   key_name               = "sgp-ec2-key"
   vpc_security_group_ids = [aws_security_group.microservice_ec2_sg.id]
+  iam_instance_profile   = aws_iam_instance_profile.s3_dynamodb_full_access_instance_profile.name
 
   tags = {
     Name = "sgp-${var.microservice_name}"
@@ -63,3 +71,50 @@ resource "aws_s3_bucket" "microservice_s3" {
     Name = "sgp-${var.microservice_name}"
   }
 }
+
+resource "aws_iam_role" "s3_dynamodb_full_access_role" {
+  name = "sgp-${var.microservice_name}-s3_dynamodb_full_access_role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+
+  tags = {
+    Name = "sgp-${var.microservice_name}"
+  }
+
+}
+
+resource "aws_iam_role_policy_attachment" "s3_full_access_role_policy_attachment" {
+  role       = aws_iam_role.s3_dynamodb_full_access_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+
+}
+
+resource "aws_iam_role_policy_attachment" "dynamodb_full_access_role_policy_attachment" {
+  role       = aws_iam_role.s3_dynamodb_full_access_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+
+}
+
+resource "aws_iam_instance_profile" "s3_dynamodb_full_access_instance_profile" {
+  name = "sgp-${var.microservice_name}-s3_dynamodb_full_access_instance_profile"
+  role = aws_iam_role.s3_dynamodb_full_access_role.name
+
+  tags = {
+    Name = "sgp-${var.microservice_name}"
+  }
+}
+
