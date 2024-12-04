@@ -1,5 +1,5 @@
 variable "microservice_name" {
-   description = "Microservice name"
+  description = "Microservice name"
 }
 
 variable "create_dynamodb" {
@@ -8,4 +8,8 @@ variable "create_dynamodb" {
 
 variable "create_s3" {
   description = "Define se o bucket S3 deve ser criado"
+}
+
+variable "region" {
+  description = "Nome da região da AWS"
 }

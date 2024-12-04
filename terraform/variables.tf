@@ -16,6 +16,11 @@ variable "create_s3" {
   default     = true
 }
 
+variable "region" {
+  description = "Nome da região da AWS"
+  default     = "us-east-1"
+}
+
 /*
 // EXEMPLO SE FOSSE CRIAR COMO LISTA
 variable "microservice_names" {

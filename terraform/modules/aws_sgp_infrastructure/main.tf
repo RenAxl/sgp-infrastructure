@@ -2,16 +2,16 @@ resource "aws_security_group" "microservice_ec2_sg" {
   name        = "sgp-${var.microservice_name}-ec2-sg"
   description = "Allow traffic on ports 22 and 80"
 
-  ingress {
-    from_port   = 80
-    to_port     = 80
+ ingress {
+    from_port   = 22
+    to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    from_port   = 5000
-    to_port     = 5000
+    from_port   = 8080
+    to_port     = 8080
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -34,6 +34,21 @@ resource "aws_instance" "microservice_ec2" {
   key_name               = "sgp-ec2-key"
   vpc_security_group_ids = [aws_security_group.microservice_ec2_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.s3_dynamodb_full_access_instance_profile.name
+
+  provisioner "local-exec" {
+    command = "sleep 60; ssh-keyscan ${self.public_ip} >> ~/.ssh/known_hosts"
+  }
+
+  provisioner "local-exec" {
+    command = "echo ${var.microservice_name} id=${self.id} ansible_host=${self.public_ip} ansible_user=ubuntu aws_region=${var.region} aws_s3_bucket=${length(aws_s3_bucket.microservice_s3) > 0 ? aws_s3_bucket.microservice_s3[0].bucket : "N/A"} aws_dynamodb_table=${length(aws_dynamodb_table.microservice_dynamodb) > 0 ? aws_dynamodb_table.microservice_dynamodb[0].name : "N/A"} >> /etc/ansible/hosts"
+
+  }
+
+  provisioner "local-exec" {
+    command = "sed -i '/${self.id}/d' /etc/ansible/hosts"
+    when    = destroy
+  }
+
 
   tags = {
     Name = "sgp-${var.microservice_name}"
