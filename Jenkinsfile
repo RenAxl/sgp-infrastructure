@@ -5,39 +5,52 @@ pipeline {
         TF_WORKING_DIR = 'terraform' // Caminho para o diretório Terraform no repositório
     }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
+       stages {
         stage('Terraform Init') {
             steps {
-                dir("${TF_WORKING_DIR}") {
-                    sh 'terraform init'
+                withCredentials([
+                    string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    dir('terraform') {
+                        sh '''
+                        terraform init
+                        '''
+                    }
                 }
             }
         }
 
         stage('Terraform Plan') {
             steps {
-                dir("${TF_WORKING_DIR}") {
-                    sh 'terraform plan'
+                withCredentials([
+                    string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    dir('terraform') {
+                        sh '''
+                        terraform plan
+                        '''
+                    }
                 }
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                dir("${TF_WORKING_DIR}") {
-                    sh 'terraform apply -auto-approve'
+                withCredentials([
+                    string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    dir('terraform') {
+                        sh '''
+                        terraform apply -auto-approve
+                        '''
+                    }
                 }
             }
         }
-
     }
-
     post {
         success {
             echo 'Pipeline executada com sucesso!'
